@@ -67,12 +67,14 @@ getPostsRoute.get("/", async (req, res) => {
     
     try {
 
-    //     .limit(limit * 1)
-    //   .skip((page - 1) * limit)
-    const returnAllArticles = await blogModel.find(searchQuery).sort(queryByOrder).limit(per_page * 1).skip((page - 1) * per_page);
+    
+        const returnAllArticles = await blogModel.find(searchQuery).sort(queryByOrder).limit(per_page * 1).skip((page - 1) * per_page);
+        const count = await blogModel.count();
         
             return res.json({
             message: "Request Successful!",
+            totalPages: (count / per_page),
+            current_page: page, 
             data: returnAllArticles
             })
     }catch (err) {
