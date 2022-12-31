@@ -1,13 +1,11 @@
 const express = require("express");
 const app = express();
 const bodyParser = require("body-parser");
-//const { promisify } = require("util");
-//const { authUser } = require("../controllers/userAuth");
 
 const userModel = require("../Models/usersSchema");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-require("dotenv").config()
+require("dotenv").config();
 const secretKey = process.env.SECRET_KEY
 const usersRoute = express.Router();
 app.use(bodyParser.json());
@@ -16,7 +14,7 @@ app.use(bodyParser.urlencoded({ extended: false}));
 
 usersRoute.get("/", async (req, res) => {
     
-    const getAllUsers = await userModel.find({}).populate("blogPosts", {author: 1, body: 1});
+    const getAllUsers = await userModel.find({}) //.populate("blogPosts", {author: 1, body: 1});
     
 
     try {
@@ -62,6 +60,7 @@ usersRoute.post("/sign-up", (req, res) => {
     })
 })
 
+
 usersRoute.post("/login", async (req, res) => {
     const { email, firstName, lastName, password } = req.body;
     try {
@@ -78,10 +77,10 @@ usersRoute.post("/login", async (req, res) => {
         //console.log(comparison)
         const userId = user._id; 
                 if(comparison === true) {
-                    jwt.sign({userId}, process.env.SECRET_KEY, { expiresIn: "1h" }, function(err, token) {
+                    jwt.sign({userId}, process.env.SECRET_KEY, /*{ expiresIn: "1h" },*/ (err, token) => {
                         return res.json({token});
-                        
                     })
+                        
                 }else {
                     return res.json({
                     message: "Invalid password or username"

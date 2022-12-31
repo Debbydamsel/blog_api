@@ -13,8 +13,8 @@ getPostsRoute.get("/", async (req, res) => {
     //It should also be searchable by author, title and tags.
     //It should also be orderable by read_count, reading_time and timestamp
 
-    const { query } = req;
-    const { 
+    let { query } = req;
+    let { 
         author, 
         title, 
         tags, 
@@ -42,17 +42,18 @@ getPostsRoute.get("/", async (req, res) => {
     }
     console.log(searchQuery);
 
-    const queryByOrder = {};
+    let queryByOrder = {};
 
-    const sortDiffFields = order_by.split(",");
+    let sortbyTheDiffFieldsRequired = order_by.split(",");
+    console.log(sortbyTheDiffFieldsRequired);
 
-    for (const field of sortDiffFields) {
-        if (order = "asc" && order_by) {
+    for (let field of sortbyTheDiffFieldsRequired) {
+        if (order_by && order === "asc") {
             queryByOrder[field] = 1
 
             
         }
-        if (order = "desc" && order_by) {
+        if (order_by && order === "desc") {
             queryByOrder[field] = -1
 
             //  QueryByOrder.timestamps = timestamps //{
@@ -62,13 +63,13 @@ getPostsRoute.get("/", async (req, res) => {
         }
     }
 
-    console.log(QueryByOrder)
+    console.log(queryByOrder)
     
     try {
 
     //     .limit(limit * 1)
     //   .skip((page - 1) * limit)
-    const returnAllArticles = await blogModel.find(searchQuery).sort(QueryByOrder).limit(per_page * 1).skip((page - 1) * per_page);
+    const returnAllArticles = await blogModel.find(searchQuery).sort(queryByOrder).limit(per_page * 1).skip((page - 1) * per_page);
         
             return res.json({
             message: "Request Successful!",

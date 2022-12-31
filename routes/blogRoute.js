@@ -2,7 +2,10 @@ const express = require("express");
 const app = express()
 const blogRoute = express.Router();
 const blogModel = require("../Models/blogSchema");
-const userModel = require("../Models/usersSchema")
+const userModel = require("../Models/usersSchema");
+const jwt = require("jsonwebtoken");
+require("dotenv").config();
+const SECRET_KEY = process.env.SECRET_KEY;
 
 
 const bodyParser = require("body-parser");
@@ -16,13 +19,16 @@ blogRoute.get("/", async (req, res) => {
     //It should also be searchable by author, title and tags.
     //It should also be orderable by read_count, reading_time and timestamp
 
-    const { query } = req;
-    const { author, 
+    let { query } = req;
+    let { 
+        author, 
         title, 
         tags, 
-        timestamps
-        // page = 1,
-        // per_page = 0,
+        timestamps,
+        page = 1,
+        per_page = 20,
+        order_by = "reading_time",
+        order = "asc"
     } = query;
 
     const searchQuery = {};
@@ -39,23 +45,45 @@ blogRoute.get("/", async (req, res) => {
         searchQuery.tags = tags;
     }
     console.log(searchQuery);
+    if (timestamps) {
+        QueryByOrder.timestamps = timestamps //{
+       //     $gt: moment(timestamp).toDate(),
+       //     $lt: moment(timestamp).toDate()
+       // }
+   }
+   
 
     const QueryByOrder = {};
 
-    if (timestamps) {
-         QueryByOrder.timestamps = timestamps //{
-        //     $gt: moment(timestamp).toDate(),
-        //     $lt: moment(timestamp).toDate()
-        // }
+    const sortByTheDiffFields = order_by.split(",");
+    console.log(order_by);
+
+    console.log(sortByTheDiffFields);
+
+    for (const field of sortByTheDiffFields) {
+        if (order === "asc" && order_by  ) {
+            QueryByOrder[field] = 1;
+        }
+
+        if (order === "desc" && order_by ) {
+            QueryByOrder[field] = -1
+        }
     }
-    console.log(QueryByOrder)
+    console.log(QueryByOrder); 
     
     try {
-    const returnAllArticles = await blogModel.find(searchQuery).sort(QueryByOrder)/*.limit(page).skip(per_page)*/;
+        const returnAllArticles = await blogModel.find(searchQuery).sort(QueryByOrder).limit(per_page * 1).skip((page - 1)* per_page);
+
+        //get total documents in the Posts collection
+        const count = await blogModel.count();
         
-            return res.json({
+        // return response with total pages, and current page
+            res.json({
             message: "Request Successful!",
-            data: returnAllArticles
+            totalPages: Math.ceil((count / per_page)),
+            currentPage: page,
+            data: returnAllArticles,
+            
             })
     }catch (err) {
         res.json({
@@ -95,59 +123,13 @@ blogRoute.get("/:id", async (req, res) => {
 blogRoute.post("/", async (req, res) => {
 
 
-//     const { title, description, state, tags, body } = req.body;
 
-//     if (!title || !description || !state || !tags || !body) {
-//       return next(new Error("Please provide all the required fields", 400));
-//     }
-  
-//     // find the user who is creating the blog
-//     const user = await userModel.findById(req.user[0]._id);
-//     console.log(req.user._id);
-  
-//     // const time = readingTime(body);
-//     // const reading_time = `${time} min read`;
-  
-//     // create the blog
-//     const newArticle = new blogModel({
-//       title: title,
-//       description: description,
-//       author: `${user.firstName} ${user.lastName}`,
-//       //reading_time: reading_time,
-//       state: state,
-//       tags: tags,
-//       body: body,
-//       user: user._id,
-//     });
-  
-//     // save the blog
-//     const savedArticle = await newArticle.save();
-  
-//     // add the blog to the user's blogs array
-//     user.articles = user.articles.concat(savedArticle._id);
-  
-//     // save the user
-//     await user.save();
-  
-//     res.status(201).json({
-//       status: "success",
-//       message: "Article created successfully",
-//       data: {
-//         blog: savedArticle,
-//       },
-//     });
-//   });
-
-
-
-
-    
-//     const userId = user._id;
-//     console.log(userId);
     const {title, description, author, state, tag, body} = req.body;
 
-    // const User = await userModel.findById(user._Id);
-    // console.log(User);
+    //const user = await jwt.verify(req.token, SECRET_KEY);
+
+    //  const currentUser = await userModel.findById(user.userId);
+    //  console.log(currentUser);
     
 
      const bodyCount = Math.ceil((body.split(" ").length) / 200);
@@ -197,7 +179,7 @@ blogRoute.post("/", async (req, res) => {
     
 })
 
-blogRoute.patch("/:id", async (req, res) => {
+blogRoute.put("/:id", async (req, res) => {
     const { id } = req.params;
     const { state } = req.body;
     console.log(state);
