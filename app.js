@@ -1,11 +1,12 @@
 const express = require("express");
 const bodyParser = require("body-parser");
-const { connectToDb } = require("./mongoConnect");
+const { connectToDb } = require("./dbConnection/mongoConnect");
 const { blogRoute } = require("./routes/blogRoute");
 const { getPostsRoute } = require("./routes/getPostsRoute")
 
 const { authUser } = require("./controllers/userAuth");
-const { usersRoute } = require("./routes/usersRoute");
+const { authRoute } = require("./routes/authRoute");
+const { userRoute } = require("./routes/usersRoute");
 
 
 
@@ -20,11 +21,13 @@ app.use(bodyParser.urlencoded({ extended: false}));
 
 
 
-app.use("/users", usersRoute)
+app.use("/auth", authRoute);
 
 app.use("/getPosts", getPostsRoute);
 
-app.use("/posts", authUser, blogRoute)
+app.use("/posts", authUser, blogRoute);
+
+app.use("/users", userRoute);
 
 app.get("/", (req, res) => {
     res.json({
