@@ -31,7 +31,7 @@ const blogModel = new blogSchema({
     user: [
     {
          type: mongoose.Schema.Types.ObjectId,
-         ref: 'Users',
+         ref: 'users',
     }
     ],
     reading_time: Number,

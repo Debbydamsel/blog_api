@@ -14,7 +14,7 @@ app.use(bodyParser.urlencoded({ extended: false}));
 
 usersRoute.get("/", async (req, res) => {
     
-    const getAllUsers = await userModel.find({}) //.populate("blogPosts", {author: 1, body: 1});
+    const getAllUsers = await userModel.find({}).populate("blog", {author: 1, body: 1});
     
 
     try {
@@ -62,11 +62,11 @@ usersRoute.post("/sign-up", (req, res) => {
 
 
 usersRoute.post("/login", async (req, res) => {
-    const { email, firstName, lastName, password } = req.body;
+    const { email, password } = req.body;
     try {
         const user = await userModel.findOne({email});
-        //console.log(user);
-        //const user._Id = user._id;
+        console.log(user);
+        
         if(!user || user === null) {
             return res.json({
                 message: "You are not registered, please sign up!"
@@ -74,10 +74,10 @@ usersRoute.post("/login", async (req, res) => {
         }
         
         const comparison = await bcrypt.compare(password, user.password)
-        //console.log(comparison)
         const userId = user._id; 
                 if(comparison === true) {
-                    jwt.sign({userId}, process.env.SECRET_KEY, /*{ expiresIn: "1h" },*/ (err, token) => {
+                    
+                    jwt.sign({userId}, process.env.SECRET_KEY/*, { expiresIn: "1h" }*/, (err, token) => {
                         return res.json({token});
                     })
                         
@@ -86,7 +86,7 @@ usersRoute.post("/login", async (req, res) => {
                     message: "Invalid password or username"
                     })
                 }
-                //console.log(token);
+            
     } catch (err) {
         res.json({
             Message: "An error occurred!",
@@ -96,42 +96,6 @@ usersRoute.post("/login", async (req, res) => {
     
     
 })
-
-
-//  usersRoute.post("/", authUser, async  function (req, res, next) {
-
-//     let token;
-//   if (
-//     req.headers.authorization &&
-//     req.headers.authorization.startsWith("Bearer")
-//   ) {
-//     token = req.headers.authorization.split(" ")[1];
-//   }
-//   if (!token) {
-//     return next(res.json({message: "You are unauthorized! Please login to continue"}));
-//   }
-//   // Verify the token
-//   const user = await promisify(jwt.verify)(token, secretKey);
-
-//   // check if the user still exists
-//   const presentUser = await userModel.findById(user.id);
-//   if (!presentUser) {
-//     return next(res.json({message: "User does not exists"}));
-//   }
-
-//   req.user = presentUser;
-//   next();
-
-// //     jwt.verify(req.token, secretKey, function (err, authData) {
-// //         if (err) {
-// //             res.status(403);
-// //         }else {
-// //             authData,
-// //             next()
-// //         }
-// //     })
-        
-//  })
 
 
 

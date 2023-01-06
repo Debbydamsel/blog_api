@@ -22,8 +22,6 @@ getPostsRoute.get("/", async (req, res) => {
         per_page = 20,
         order_by = "reading_time",
         order = "asc",
-        read_count,
-        reading_time,
         timestamps
     } = query;
 
@@ -68,7 +66,7 @@ getPostsRoute.get("/", async (req, res) => {
     try {
 
     
-        const returnAllArticles = await blogModel.find(searchQuery).sort(queryByOrder).limit(per_page * 1).skip((page - 1) * per_page);
+        const returnAllArticles = await blogModel.find(searchQuery).populate("user", {firstName: 1, lastName: 1}).sort(queryByOrder).limit(per_page * 1).skip((page - 1) * per_page);
         const count = await blogModel.count();
         
             return res.json({
@@ -93,14 +91,14 @@ getPostsRoute.get("/:id", async (req, res) => {
     //for ()
 
     try {
-        const getArticleById = await blogModel.findById(id);
+        const getPostById = await blogModel.findById(id).populate("user", {firstName: 1, lastName: 1});
 
-        getArticleById.read_count += 1;
-        await getArticleById.save()
+        getPost.read_count += 1;
+        await getPostById.save()
 
         res.json({
             message: "Here you go!",
-            getArticleById
+            getPostById
         })
     } catch (err) {
         res.json({

@@ -3,9 +3,9 @@ const authRoute = express.Router();
 require("dotenv").config();
 const SECRET_KEY = process.env.SECRET_KEY;
 const jwt = require("jsonwebtoken");
-const { promisify } = require("util");
+//const { promisify } = require("util");
 const userModel  = require("../Models/usersSchema");
-const usersRoute = require("../routes/usersRoute");
+//const usersRoute = require("../routes/usersRoute");
 
 
     async function authUser(req, res, next) {
@@ -25,13 +25,12 @@ const usersRoute = require("../routes/usersRoute");
              // //Verify the token
 
              const user = await jwt.verify(req.token, SECRET_KEY);
-            console.log(user)
-            // //console.log(user.id);
+            //console.log(user)
 
             // //check if the user still exists
             
             let presentUser = await userModel.findById(user.userId);
-            console.log(user.userId);
+            //console.log(user.userId);
     
             console.log(presentUser);
             if (!presentUser) {
