@@ -88,12 +88,10 @@ async function getAllBlogPosts(req, res) {
 async function getPostById(req, res) {
     const { id } =  req.params;
 
-    //for ()
-
     try {
         const getPostById = await blogModel.findById(id).populate("user", {firstName: 1, lastName: 1});
 
-        getPost.read_count += 1;
+        getPostById.read_count++;
         await getPostById.save()
 
         res.json({

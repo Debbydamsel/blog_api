@@ -16,8 +16,7 @@ app.use(bodyParser.urlencoded({ extended: false}));
 
 
 async function getAllBlogPosts(req, res)  {
-    //It should also be searchable by author, title and tags.
-    //It should also be orderable by read_count, reading_time and timestamp
+
 
     let { query } = req;
     let { 
@@ -56,9 +55,6 @@ async function getAllBlogPosts(req, res)  {
     const QueryByOrder = {};
 
     const sortByTheDiffFields = order_by.split(",");
-    //console.log(order_by);
-
-    //console.log(sortByTheDiffFields);
 
     for (const field of sortByTheDiffFields) {
         if (order === "asc" && order_by  ) {
@@ -118,6 +114,22 @@ async function getBlogPostById (req, res) {
     }
     
 
+}
+
+async function getUsersBlogPosts(req, res) {
+    const {query}  = req;
+    console.log(query);
+    
+    try {
+            let {user} = query;
+            
+           let findUser = await blogModel.find({user});
+            
+            res.json({findUser});
+
+    } catch (error) {
+        res.json({message: "An error Occurred!", error})
+    }
 }
 
 
@@ -182,7 +194,7 @@ async function createBlogPost(req, res) {
 
 async function updateBlogPost(req, res) {
     const { id } = req.params;
-    const { state } = req.body;
+    const { state, title, description, body } = req.body;
     console.log(state);
     try {
 
@@ -202,8 +214,12 @@ async function updateBlogPost(req, res) {
         //console.log(presentUser);
         const userIdFromdb = presentUser._id.valueOf();
         //console.log(userIdFromdb)
-        let findBlog = await blogModel.findOne({email: presentUser.email});
+        
+         let findBlog = await blogModel.findById(id);
+         //console.log(findBlog.user);
         const gettingTheIdFromRef = findBlog.user[0].valueOf();
+        //console.log(gettingTheIdFromRef);
+       
 
         if (!state || state === "undefined" || state === "null") {
             res.json({message: "Please enter the correct item you want to update"})
@@ -228,7 +244,7 @@ async function updateBlogPost(req, res) {
             data: err.message
         })
     }
-    
+        
 }
 
 
@@ -252,7 +268,7 @@ async function deleteBlogPost(req, res) {
         //console.log(presentUser);
         const userIdFromdb = presentUser._id.valueOf();
         //console.log(userIdFromdb)
-        let findBlog = await blogModel.findOne({email: presentUser.email});
+        let findBlog = await blogModel.findById(id);
         const gettingTheIdFromRef = findBlog.user[0].valueOf();
 
         if (userIdFromdb !== gettingTheIdFromRef) {
@@ -276,6 +292,7 @@ async function deleteBlogPost(req, res) {
 module.exports = {
     getAllBlogPosts,
     getBlogPostById,
+    getUsersBlogPosts,
     createBlogPost,
     updateBlogPost,
     deleteBlogPost
