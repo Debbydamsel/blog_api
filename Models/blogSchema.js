@@ -18,7 +18,7 @@ const blogModel = new blogSchema({
         type: String,
         required: true
     },
-    tags: Array,
+    tags: [String],
     state: {
         type: String,
         enum: ["draft", "published"],
@@ -32,7 +32,7 @@ const blogModel = new blogSchema({
          type: mongoose.Schema.Types.ObjectId,
          ref: 'users',
     },
-    reading_time: Number,
+    reading_time: String,
     
 
 }, { timestamps: true })

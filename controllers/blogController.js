@@ -6,6 +6,7 @@ const userModel = require("../Models/usersSchema");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 const SECRET_KEY = process.env.SECRET_KEY;
+//const { readingTime } = require("../controllers/readingTime");
 
 
 const bodyParser = require("body-parser");
@@ -16,8 +17,6 @@ app.use(bodyParser.urlencoded({ extended: false}));
 
 
 async function getAllBlogPosts(req, res)  {
-
-
     let { query } = req;
     let { 
         author, 
@@ -118,7 +117,7 @@ async function getBlogPostById (req, res) {
 
 async function getUsersBlogPosts(req, res) {
     const {query}  = req;
-    console.log(query);
+    //console.log(query);
     
     try {
             let {user} = query;
@@ -135,25 +134,13 @@ async function getUsersBlogPosts(req, res) {
 
 
 async function createBlogPost(req, res) {
-
-
-
     const {title, description, state, tag, body} = req.body;
-    
-
-     const bodyCount = Math.ceil((body.split(" ").length) / 200);
-     
-    
-        
-        
+     const bodyCount = Math.ceil((body.trim().split(/\s+/).length) / 255);
+     const bodyCountInMintues = `${bodyCount} minutes`;
     try {
-
             const authUser = req.headers["authorization"];
-    
-
             const splitingBearerAndToken = authUser.split(" ");
             const bearerToken = await splitingBearerAndToken[1]
-        
             req.token = bearerToken;
              // //Verify the token
              const user = await jwt.verify(req.token, SECRET_KEY);
@@ -162,8 +149,7 @@ async function createBlogPost(req, res) {
             let presentUser = await userModel.findById(user.userId);
             
         const blogPost = await blogModel.create({
-       // read_count: 1,
-            reading_time: bodyCount,
+            reading_time: bodyCountInMintues,
             title, 
             description,
             state,
@@ -171,15 +157,12 @@ async function createBlogPost(req, res) {
             author: `${presentUser.firstName} ${presentUser.lastName}`, 
             body,
             user: user.userId
-            //timestamp: moment().toDate(),
         })
 
         // To save the blog's id to the blog field in the user's schema 
         const savedBlog =  await blogPost.save();
         presentUser.blog = presentUser.blog.concat(savedBlog._id);
         await presentUser.save();
-
-
         res.json({
             message:"Uploading of article successful!",
             savedBlog
@@ -188,8 +171,6 @@ async function createBlogPost(req, res) {
         res.send(err.message);
         
     }   
-    
-    
 }
 
 async function updateBlogPost(req, res) {
