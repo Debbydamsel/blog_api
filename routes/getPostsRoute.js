@@ -3,10 +3,12 @@ const getPostsRoute = express.Router();
 const moment = require("moment");
 
 const getBlogPosts = require("../controllers/getAllPostsController");
+const catchAsyncFn = require("../utils/catchAsyncFunc");
 
 
-getPostsRoute.get("/", getBlogPosts.getAllBlogPosts)
 
-getPostsRoute.get("/:id", getBlogPosts.getPostById)
+getPostsRoute.get("/", catchAsyncFn(getBlogPosts.getAllBlogPosts))
 
-module.exports = { getPostsRoute }
+getPostsRoute.get("/:id", catchAsyncFn(getBlogPosts.getPostById))
+
+module.exports = getPostsRoute

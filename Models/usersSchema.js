@@ -6,20 +6,20 @@ const userSchema = mongoose.Schema;
 const userModel = new userSchema({
     email: {
         type: String,
-        required: true,
-        unique: true
+        required: [true, "Please provide an email address"],
+        unique: [true, "This email address already exists"]
     },
     firstName: {
         type: String,
-        required: true
+        required: [true, "Please enter your first name"]
     },
     lastName: {
         type: String,
-        required: true
+        required: [true, "Please enter your last name"]
     },
     password: {
         type: String,
-        required: true
+        required: [true, "Enter a valid password"]
     },
     blog: [
         {

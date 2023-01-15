@@ -6,22 +6,25 @@ const blogSchema = mongoose.Schema;
 const blogModel = new blogSchema({
     title: {
         type: String,
-        required: true,
-        unique: true
+        required: [true, "Please provide a title for your blog post"],
+        unique: [true, "This title already exist"]
     },
     description: String,
     author: {
         type: String,
-        required: true
+        required: true,
       },
     body: {
         type: String,
-        required: true
+        required: [true, "Please provide a content for your blog post"]
     },
     tags: [String],
     state: {
         type: String,
-        enum: ["draft", "published"],
+        enum: {
+            values: ["draft", "published"],
+            message: "State can only either be in: draft, published"
+        },
         default: "draft"
     },
     read_count: {

@@ -1,12 +1,11 @@
 const express = require("express");
 const app = express()
-const blogRoute = express.Router();
 const blogModel = require("../Models/blogSchema");
 const userModel = require("../Models/usersSchema");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 const SECRET_KEY = process.env.SECRET_KEY;
-//const { readingTime } = require("../controllers/readingTime");
+const AppError = require("../utils/appError");
 
 
 const bodyParser = require("body-parser");
@@ -16,7 +15,8 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false}));
 
 
-async function getAllBlogPosts(req, res)  {
+
+async function getAllBlogPosts(req, res, next)  {
     let { query } = req;
     let { 
         author, 
@@ -64,9 +64,7 @@ async function getAllBlogPosts(req, res)  {
             QueryByOrder[field] = -1
         }
     }
-    //console.log(QueryByOrder); 
     
-    try {
         const returnAllArticles = await blogModel.find(searchQuery).populate("user", {firstName: 1, lastName: 1}).sort(QueryByOrder).limit(per_page * 1).skip((page - 1)* per_page);
 
         //get total documents in the Posts collection
@@ -80,24 +78,20 @@ async function getAllBlogPosts(req, res)  {
             data: returnAllArticles,
             
             })
-    }catch (err) {
-        console.log(err);
-        res.json({
-            message: "An error occurred while getting all articles",
-            err: err.message
-        })
-    }
+   
 }
 
 
 
-async function getBlogPostById (req, res) {
+async function getBlogPostById(req, res, next) {
     const { id } =  req.params;
 
     
 
-    try {
         const getPostById = await blogModel.findById(id).populate("user", {firstName: 1, lastName: 1});
+        if (!getPostById) {
+            return next(new AppError("No blogPost with that ID found, check the ID and try again!", 404))//COMING FROM OUR AppError function CLASS CREATED IN UTILS;
+        }
 
             getPostById.read_count += 1;
             await getPostById.save()
@@ -105,39 +99,33 @@ async function getBlogPostById (req, res) {
             message: "Here you go!",
             getPostById
         })
-    } catch (err) {
-        res.json({
-            message: "An error occurred while getting all articles",
-            err: err.message
-        })
-    }
     
 
-}
+};
 
-async function getUsersBlogPosts(req, res) {
+async function getUsersBlogPosts(req, res, next) {
     const {query}  = req;
-    //console.log(query);
     
-    try {
             let {user} = query;
             
-           let findUser = await blogModel.find({user});
+           let findUserPosts = await blogModel.find({user});
+          
             
-            res.json({findUser});
+            res.json({findUserPosts});
 
-    } catch (error) {
-        res.json({message: "An error Occurred!", error})
-    }
+    
 }
 
 
 
-async function createBlogPost(req, res) {
+async function createBlogPost(req, res, next) {
     const {title, description, state, tag, body} = req.body;
+    
+    // An algorithm to display how many minutes read an article is. 
      const bodyCount = Math.ceil((body.trim().split(/\s+/).length) / 255);
      const bodyCountInMintues = `${bodyCount} minutes`;
-    try {
+    
+
             const authUser = req.headers["authorization"];
             const splitingBearerAndToken = authUser.split(" ");
             const bearerToken = await splitingBearerAndToken[1]
@@ -167,17 +155,12 @@ async function createBlogPost(req, res) {
             message:"Uploading of article successful!",
             savedBlog
         })
-    }catch (err){
-        res.send(err.message);
-        
-    }   
 }
 
-async function updateBlogPost(req, res) {
+async function updateBlogPost(req, res, next) {
     const { id } = req.params;
     const { state, title, description, body } = req.body;
     console.log(state);
-    try {
 
         const authUser = req.headers["authorization"];
     
@@ -188,18 +171,13 @@ async function updateBlogPost(req, res) {
         req.token = bearerToken;
              // //Verify the token
         const user = await jwt.verify(req.token, SECRET_KEY);
-        //console.log(user);
 
             // //check if the user still exists
         let presentUser = await userModel.findById(user.userId);
-        //console.log(presentUser);
         const userIdFromdb = presentUser._id.valueOf();
-        //console.log(userIdFromdb)
         
          let findBlog = await blogModel.findById(id);
-         //console.log(findBlog.user);
         const gettingTheIdFromRef = findBlog.user[0].valueOf();
-        //console.log(gettingTheIdFromRef);
        
 
         if (!state || state === "undefined" || state === "null") {
@@ -218,22 +196,12 @@ async function updateBlogPost(req, res) {
             res.json({message: "You cannot update this blog because you are not the owner of the blog"});
         }
         
-        
-    } catch (err) {
-        res.json({
-            message: "An Error occurred while updating!",
-            data: err.message
-        })
-    }
-        
 }
 
 
 
 async function deleteBlogPost(req, res) {
     const { id }= req.params;
-    
-    try {
 
         const authUser = req.headers["authorization"];
         const splitingBearerAndToken = authUser.split(" ");
@@ -258,16 +226,14 @@ async function deleteBlogPost(req, res) {
 
 
         const deletingById = await blogModel.findByIdAndDelete(id);
+        if (!deletingById) {
+            console.log('NO!')
+            return next(new AppError("No blogPost with that ID found, check the ID and try again!", 404))//COMING FROM OUR AppError function CLASS CREATED IN UTILS;
+        }
+
         res.json({
             message: "deletion Successful",
-        })
-        
-    } catch (err) {
-        res.json({
-            message: "An Error occurred while deleting!",
-            data: err.message
-        })
-    }    
+        })   
 }
 
 module.exports = {

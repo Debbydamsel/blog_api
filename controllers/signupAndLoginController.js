@@ -36,10 +36,9 @@ function signUp(req, res) {
             
         } catch (err) {
             res.json({
-                Message: "An error occurred!",
-                err
+                message: err.message
             })
-        }
+         }
     })
 }
 
@@ -73,8 +72,7 @@ async function login(req, res) {
             
     } catch (err) {
         res.json({
-            Message: "An error occurred!",
-            err
+            Message: err.message
         })
     }
     

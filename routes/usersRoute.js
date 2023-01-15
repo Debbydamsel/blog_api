@@ -7,4 +7,4 @@ const usersController = require("../controllers/userController");
 
 userRoute.get("/", usersController.getAllUsers);
 
-module.exports = { userRoute }
+module.exports = userRoute;
