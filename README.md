@@ -4,9 +4,13 @@ This is a blogging api that was built to perform CRUD(creating of blog posts, re
 # Project was built using:
 
 node.js
+
 Express
+
 Mongodb
+
 JWT(json web token)
+
 
 # Requirements:
 
